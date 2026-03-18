@@ -1,69 +1,60 @@
 #include <stdio.h>
 
+#define SIZE 5
+
+int buffer[SIZE];
+int in = 0, out = 0;
+
 // Simulated semaphores
 int mutex = 1;
-int wrt = 1;
-int readTry = 1;
-int readcount = 0;
+int empty = SIZE;
+int full = 0;
 
-// wait (P operation)
+// wait (P)
 void wait(int *s) {
     while (*s <= 0); // busy wait
     (*s)--;
 }
 
-// signal (V operation)
+// signal (V)
 void signal(int *s) {
     (*s)++;
 }
 
-// Reader process
-void reader(int id) {
-    // Entry section
-    wait(&readTry);
+// Producer
+void producer(int item) {
+    wait(&empty);
     wait(&mutex);
 
-    readcount++;
-    if (readcount == 1)
-        wait(&wrt);
+    buffer[in] = item;
+    printf("Produced: %d at position %d\n", item, in);
+    in = (in + 1) % SIZE;
 
     signal(&mutex);
-    signal(&readTry);
-
-    // Critical section
-    printf("Reader %d is reading\n", id);
-
-    // Exit section
-    wait(&mutex);
-
-    readcount--;
-    if (readcount == 0)
-        signal(&wrt);
-
-    signal(&mutex);
+    signal(&full);
 }
 
-// Writer process
-void writer(int id) {
-    // Entry section
-    wait(&readTry);
-    wait(&wrt);
+// Consumer
+void consumer() {
+    wait(&full);
+    wait(&mutex);
 
-    // Critical section
-    printf("Writer %d is writing\n", id);
+    int item = buffer[out];
+    printf("Consumed: %d from position %d\n", item, out);
+    out = (out + 1) % SIZE;
 
-    // Exit section
-    signal(&wrt);
-    signal(&readTry);
+    signal(&mutex);
+    signal(&empty);
 }
 
 int main() {
-    // Simulated execution order
-    reader(1);
-    reader(2);
-    writer(1);
-    reader(3);
-    writer(2);
+    // Simulated sequence
+    producer(1);
+    producer(2);
+    consumer();
+    producer(3);
+    consumer();
+    consumer();
 
     return 0;
 }
