@@ -1,80 +1,157 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int n, h, r[100], d;
+int n, head, req[100];
 
-void s(int a[], int n){
-    for(int i=0;i<n-1;i++)
-        for(int j=i+1;j<n;j++)
-            if(a[i]>a[j]){int t=a[i];a[i]=a[j];a[j]=t;}
-}
-
-void SSTF(){
-    int v[100]={0}, t=0, p=h;
-    printf("\nSeek Sequence: %d", p);
-    for(int i=0;i<n;i++){
-        int m=9999,x=-1;
-        for(int j=0;j<n;j++)
-            if(!v[j] && abs(p-r[j])<m) m=abs(p-r[j]),x=j;
-        v[x]=1; t+=m; p=r[x];
-        printf(" -> %d", p);
+void sort(int arr[], int n) {
+    int i, j, temp;
+    for(i = 0; i < n - 1; i++) {
+        for(j = i + 1; j < n; j++) {
+            if(arr[i] > arr[j]) {
+                temp = arr[i];
+                arr[i] = arr[j];
+                arr[j] = temp;
+            }
+        }
     }
-    printf("\nTotal Seek Time = %d\n", t);
 }
 
-void LOOK(){
-    int l[100], rt[100], lc=0, rc=0, t=0, p=h;
-    for(int i=0;i<n;i++)
-        (r[i]<h?l[lc++]:rt[rc++])=r[i];
-    s(l,lc); s(rt,rc);
+void SSTF() {
+    int visited[100] = {0};
+    int total = 0, i, j, pos, min, dist;
 
-    printf("\nSeek Sequence: %d", p);
-    if(d==2){
-        for(int i=0;i<rc;i++) t+=abs(p-rt[i]), p=rt[i], printf(" -> %d", p);
-        for(int i=lc-1;i>=0;i--) t+=abs(p-l[i]), p=l[i], printf(" -> %d", p);
-    } else {
-        for(int i=lc-1;i>=0;i--) t+=abs(p-l[i]), p=l[i], printf(" -> %d", p);
-        for(int i=0;i<rc;i++) t+=abs(p-rt[i]), p=rt[i], printf(" -> %d", p);
+    pos = head;
+    printf("\nSeek Sequence: %d", pos);
+
+    for(i = 0; i < n; i++) {
+        min = 9999;
+        int index = -1;
+
+        for(j = 0; j < n; j++) {
+            if(!visited[j]) {
+                dist = abs(pos - req[j]);
+                if(dist < min) {
+                    min = dist;
+                    index = j;
+                }
+            }
+        }
+
+        visited[index] = 1;
+        total += min;
+        pos = req[index];
+        printf(" -> %d", pos);
     }
-    printf("\nTotal Seek Time = %d\n", t);
+
+    printf("\nTotal Seek Time = %d\n", total);
 }
 
-void CSCAN(){
-    int l[100], rt[100], lc=0, rc=0, t=0, p=h, ds=200;
-    for(int i=0;i<n;i++)
-        (r[i]<h?l[lc++]:rt[rc++])=r[i];
-    s(l,lc); s(rt,rc);
+void LOOK() {
+    int total = 0, i;
+    int left[100], right[100];
+    int l = 0, r = 0;
+    int pos = head;
 
-    printf("\nSeek Sequence: %d", p);
-    if(d==2){
-        for(int i=0;i<rc;i++) t+=abs(p-rt[i]), p=rt[i], printf(" -> %d", p);
-        t+=abs(p-(ds-1)); p=ds-1;
-        t+=abs(p-0); p=0; printf(" -> %d", p);
-        for(int i=0;i<lc;i++) t+=abs(p-l[i]), p=l[i], printf(" -> %d", p);
-    } else {
-        for(int i=lc-1;i>=0;i--) t+=abs(p-l[i]), p=l[i], printf(" -> %d", p);
-        t+=abs(p-0); p=0;
-        t+=abs(p-(ds-1)); p=ds-1; printf(" -> %d", p);
-        for(int i=rc-1;i>=0;i--) t+=abs(p-rt[i]), p=rt[i], printf(" -> %d", p);
+    for(i = 0; i < n; i++) {
+        if(req[i] < head)
+            left[l++] = req[i];
+        else
+            right[r++] = req[i];
     }
-    printf("\nTotal Seek Time = %d\n", t);
+
+    sort(left, l);
+    sort(right, r);
+
+    printf("\nSeek Sequence: %d", pos);
+
+    // Always go RIGHT first
+    for(i = 0; i < r; i++) {
+        total += abs(pos - right[i]);
+        pos = right[i];
+        printf(" -> %d", pos);
+    }
+
+    // Then LEFT
+    for(i = l - 1; i >= 0; i--) {
+        total += abs(pos - left[i]);
+        pos = left[i];
+        printf(" -> %d", pos);
+    }
+
+    printf("\nTotal Seek Time = %d\n", total);
 }
 
-int main(){
-    printf("Enter number of requests: "); scanf("%d",&n);
+void CSCAN() {
+    int total = 0, i;
+    int left[100], right[100];
+    int l = 0, r = 0;
+    int disk_size = 200;
+    int pos = head;
+
+    for(i = 0; i < n; i++) {
+        if(req[i] < head)
+            left[l++] = req[i];
+        else
+            right[r++] = req[i];
+    }
+
+    sort(left, l);
+    sort(right, r);
+
+    printf("\nSeek Sequence: %d", pos);
+
+    // Move RIGHT
+    for(i = 0; i < r; i++) {
+        total += abs(pos - right[i]);
+        pos = right[i];
+        printf(" -> %d", pos);
+    }
+
+    // Go to end
+    total += abs(pos - (disk_size - 1));
+    pos = disk_size - 1;
+
+    // Jump to start
+    total += abs(pos - 0);
+    pos = 0;
+    printf(" -> %d", pos);
+
+    // Service LEFT side
+    for(i = 0; i < l; i++) {
+        total += abs(pos - left[i]);
+        pos = left[i];
+        printf(" -> %d", pos);
+    }
+
+    printf("\nTotal Seek Time = %d\n", total);
+}
+
+int main() {
+    int choice, i;
+
+    printf("Enter number of requests: ");
+    scanf("%d", &n);
+
     printf("Enter request sequence:\n");
-    for(int i=0;i<n;i++) scanf("%d",&r[i]);
-    printf("Enter initial head position: "); scanf("%d",&h);
-    printf("Enter direction (1 = Left, 2 = Right): "); scanf("%d",&d);
+    for(i = 0; i < n; i++)
+        scanf("%d", &req[i]);
 
-    int c;
-    while(1){
-        printf("\n--- Disk Scheduling ---\n1. SSTF\n2. LOOK\n3. C-SCAN\n4. Exit\nEnter choice: ");
-        scanf("%d",&c);
-        if(c==4) break;
-        if(c==1) SSTF();
-        else if(c==2) LOOK();
-        else if(c==3) CSCAN();
-        else printf("Invalid choice!\n");
+    printf("Enter initial head position: ");
+    scanf("%d", &head);
+
+    while(1) {
+        printf("\n--- Disk Scheduling ---\n");
+        printf("1. SSTF\n2. LOOK\n3. C-SCAN\n4. Exit\n");
+        printf("Enter choice: ");
+        scanf("%d", &choice);
+
+        switch(choice) {
+            case 1: SSTF(); break;
+            case 2: LOOK(); break;
+            case 3: CSCAN(); break;
+            case 4: exit(0);
+            default: printf("Invalid choice!\n");
+        }
     }
+    return 0;
 }
