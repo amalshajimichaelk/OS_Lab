@@ -110,6 +110,7 @@ void CSCAN() {
     // Go to end
     total += abs(pos - (disk_size - 1));
     pos = disk_size - 1;
+    printf(" -> %d", pos);
 
     // Jump to start
     total += abs(pos - 0);
