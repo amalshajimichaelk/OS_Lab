@@ -26,7 +26,7 @@ int main() {
     // Sort by Arrival Time (Important for FCFS)
     for (i = 0; i < n - 1; i++) {
         for (j = i + 1; j < n; j++) {
-            if (at[i] > at[j]((at[i] > at[j]) || (at[i] == at[j] && pid[i] > pid[j]))) {
+            if ((at[i] > at[j]) || (at[i] == at[j] && pid[i] > pid[j]))) {
                 int temp;
                 temp = at[i]; at[i] = at[j]; at[j] = temp;
                 temp = bt[i]; bt[i] = bt[j]; bt[j] = temp;
